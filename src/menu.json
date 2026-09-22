@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "name": "k-todo",
+  "items": [
+    {
+      "name": "k-todo",
+      "priority": 1,
+      "action": "sh content/start.sh"
+    }
+  ]
+}

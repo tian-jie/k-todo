@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>k-todo 管理页</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; margin: 24px; color: #222; }
+    h1 { margin: 0 0 16px 0; }
+    .toolbar { display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; max-width: 900px; margin-bottom: 16px; }
+    input[type="text"] { padding: 8px; border: 1px solid #bbb; border-radius: 6px; }
+    label { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
+    button { border: 1px solid #444; background: #fff; border-radius: 6px; padding: 8px 12px; cursor: pointer; }
+    button:hover { background: #f2f2f2; }
+    table { width: 100%; border-collapse: collapse; max-width: 1100px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f7f7f7; }
+    .row-actions { display: flex; gap: 8px; }
+    .muted { color: #666; font-size: 12px; }
+    #msg { margin: 10px 0 16px 0; min-height: 20px; }
+    .ok { color: #0a7a2f; }
+    .err { color: #c62828; }
+  </style>
+</head>
+<body>
+  <h1>k-todo 管理页</h1>
+  <div class="muted">后端 API: /api/v1/todos</div>
+
+  <div id="msg"></div>
+
+  <div class="toolbar">
+    <input id="newTitle" type="text" placeholder="新任务标题" />
+    <label><input id="newUrgent" type="checkbox" /> 紧急</label>
+    <label><input id="newImportant" type="checkbox" /> 重要</label>
+    <button id="createBtn" type="button">新增</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>标题</th>
+        <th>紧急</th>
+        <th>重要</th>
+        <th>完成</th>
+        <th>更新时间</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="todoBody"></tbody>
+  </table>
+
+  <script>
+    function byId(id) { return document.getElementById(id); }
+
+    function setMsg(text, ok) {
+      var el = byId('msg');
+      el.className = ok ? 'ok' : 'err';
+      el.textContent = text;
+    }
+
+    async function api(path, options) {
+      var res = await fetch(path, options || {});
+      if (!res.ok) {
+        var errText = 'HTTP ' + res.status;
+        try {
+          var errJson = await res.json();
+          if (errJson && errJson.error) errText = errJson.error;
+        } catch (_) {}
+        throw new Error(errText);
+      }
+      if (res.status === 204) return null;
+      return await res.json();
+    }
+
+    function rowHtml(todo) {
+      var checkedUrgent = todo.urgent ? 'checked' : '';
+      var checkedImportant = todo.important ? 'checked' : '';
+      var checkedDone = todo.done ? 'checked' : '';
+      return '' +
+        '<tr data-id="' + todo.id + '">' +
+        '<td>' + todo.id + '</td>' +
+        '<td><input class="title" type="text" value="' + escapeHtml(todo.title) + '" /></td>' +
+        '<td><input class="urgent" type="checkbox" ' + checkedUrgent + ' /></td>' +
+        '<td><input class="important" type="checkbox" ' + checkedImportant + ' /></td>' +
+        '<td><input class="done" type="checkbox" ' + checkedDone + ' /></td>' +
+        '<td>' + todo.updated_at + '</td>' +
+        '<td class="row-actions">' +
+        '<button class="save">保存</button>' +
+        '<button class="delete">删除</button>' +
+        '</td>' +
+        '</tr>';
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    async function loadTodos() {
+      var data = await api('/api/v1/todos');
+      var html = '';
+      for (var i = 0; i < data.todos.length; i++) {
+        html += rowHtml(data.todos[i]);
+      }
+      byId('todoBody').innerHTML = html;
+    }
+
+    async function createTodo() {
+      var title = byId('newTitle').value.trim();
+      if (!title) {
+        setMsg('标题不能为空', false);
+        return;
+      }
+      await api('/api/v1/todos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title,
+          urgent: byId('newUrgent').checked,
+          important: byId('newImportant').checked
+        })
+      });
+      byId('newTitle').value = '';
+      byId('newUrgent').checked = false;
+      byId('newImportant').checked = false;
+      setMsg('新增成功', true);
+      await loadTodos();
+    }
+
+    async function saveTodo(tr) {
+      var id = tr.getAttribute('data-id');
+      await api('/api/v1/todos/' + id, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: tr.querySelector('.title').value,
+          urgent: tr.querySelector('.urgent').checked,
+          important: tr.querySelector('.important').checked,
+          done: tr.querySelector('.done').checked
+        })
+      });
+      setMsg('保存成功', true);
+      await loadTodos();
+    }
+
+    async function deleteTodo(tr) {
+      var id = tr.getAttribute('data-id');
+      await api('/api/v1/todos/' + id, { method: 'DELETE' });
+      setMsg('删除成功', true);
+      await loadTodos();
+    }
+
+    byId('createBtn').addEventListener('click', function () {
+      createTodo().catch(function (err) { setMsg('新增失败: ' + err.message, false); });
+    });
+
+    byId('todoBody').addEventListener('click', function (e) {
+      var target = e.target;
+      var tr = target.closest('tr');
+      if (!tr) return;
+
+      if (target.classList.contains('save')) {
+        saveTodo(tr).catch(function (err) { setMsg('保存失败: ' + err.message, false); });
+      }
+
+      if (target.classList.contains('delete')) {
+        deleteTodo(tr).catch(function (err) { setMsg('删除失败: ' + err.message, false); });
+      }
+    });
+
+    loadTodos().then(function () {
+      setMsg('加载成功', true);
+    }).catch(function (err) {
+      setMsg('加载失败: ' + err.message, false);
+    });
+  </script>
+</body>
+</html>

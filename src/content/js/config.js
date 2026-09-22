@@ -1,0 +1,7 @@
+var KTODO_CONFIG = {
+  API_BASE: "http://192.168.31.195:8080",
+  DEVICE_ID: "kindle-default",
+  POLL_MS: 300000,
+  REQUEST_TIMEOUT_MS: 8000,
+  CACHE_KEY: "KHOME_CACHE_V1"
+};

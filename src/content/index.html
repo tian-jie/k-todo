@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>k-home</title>
+  <link rel="stylesheet" href="main.css?v=20260922b">
+  <script src="js/polyfill.min.js?v=20260922b"></script>
+  <script src="js/config.js?v=20260922b"></script>
+  <script src="js/sdk.js?v=20260922b"></script>
+</head>
+<body>
+  <div id="dashboardView" class="view active">
+    <div class="panel calendar-panel">
+      <div class="hero-row">
+        <div class="calendar-main">
+          <div class="calendar-line">
+            <span id="dateText" class="date-text">0000-00-00</span>
+            <span id="weekdayText">星期一</span>
+            <span id="lunarText" class="lunar-text">农历八月初一</span>
+          </div>
+          <div id="clockText" class="clock-text">00:00</div>
+        </div>
+        <div class="weather-hero-card">
+          <div id="weatherHeroIcon" class="weather-hero-icon">☀</div>
+          <div class="weather-hero-temp-line"><span id="weatherHeroTemp" class="weather-hero-temp">--</span><span class="weather-hero-unit">℃</span></div>
+          <div id="weatherHeroRange" class="weather-hero-range">-- / -- ℃</div>
+          <div id="weatherHeroWind" class="weather-hero-wind">--</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel weather-panel">
+      <div class="weather-24-chart-wrap">
+        <div id="weather24Head" class="weather-24-head-grid"></div>
+        <div id="weather24Chart" class="weather-24-chart"></div>
+      </div>
+
+      <div class="sub-title">未来14天</div>
+      <div class="weather-15-chart-wrap">
+        <div id="weather15Head" class="weather-15-head-grid"></div>
+        <div id="weather15Chart" class="weather-15-chart"></div>
+      </div>
+    </div>
+
+    <div class="panel todo-summary-panel">
+      <div class="section-title">Todo 摘要</div>
+      <div id="todoSummaryText" class="todo-summary-text">待办：0</div>
+      <ul id="todoPreviewList" class="todo-preview-list"></ul>
+      <button id="openTodoBtn" class="action-btn">进入四象限 Todo</button>
+      <button id="refreshBtn" class="action-btn">刷新首页数据</button>
+    </div>
+  </div>
+
+  <div id="boardView" class="view">
+    <div class="header">四象限 Todo
+      <button id="backHomeBtn" class="header-btn">返回首页</button>
+    </div>
+    <div class="plane-wrap">
+      <div class="axis axis-x"></div>
+      <div class="axis axis-y"></div>
+      <div class="origin">O</div>
+      <div class="axis-label x-pos">紧急 +</div>
+      <div class="axis-label x-neg">紧急 -</div>
+      <div class="axis-label y-pos">重要 +</div>
+      <div class="axis-label y-neg">重要 -</div>
+
+      <div class="quadrant q2-box">
+        <div class="q-title">不紧急但重要</div>
+        <ul id="q2" class="todo-list"></ul>
+      </div>
+
+      <div class="quadrant q1-box">
+        <div class="q-title">紧急且重要</div>
+        <ul id="q1" class="todo-list"></ul>
+      </div>
+
+      <div class="quadrant q4-box">
+        <div class="q-title">不紧急且不重要</div>
+        <ul id="q4" class="todo-list"></ul>
+      </div>
+
+      <div class="quadrant q3-box">
+        <div class="q-title">紧急但不重要</div>
+        <ul id="q3" class="todo-list"></ul>
+      </div>
+    </div>
+    <div id="statusBar" class="status">初始化中...</div>
+  </div>
+
+  <script src="main.js?v=20260922b"></script>
+</body>
+</html>
